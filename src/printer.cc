@@ -19,61 +19,66 @@ std::string Printer::Stringify(v8::HeapObject heap_object, Error& err);
 
 template <>
 std::string Printer::Stringify(v8::JSFrame js_frame, Error& err) {
-  v8::Value context = llv8_->LoadValue<v8::Value>(
-      js_frame.raw() + llv8_->frame()->kContextOffset, err);
-  if (err.Fail()) return std::string();
+  // v8::Value context = llv8_->LoadValue<v8::Value>(
+      // js_frame.raw() + llv8_->frame()->kContextOffset, err);
+  // v8::Value context = GetContext(err);
+  // if (err.Fail()) return std::string();
 
-  v8::Smi smi_context = js_frame.FromFrameMarker(context);
-  if (smi_context.Check() &&
-      smi_context.GetValue() == llv8_->frame()->kAdaptorFrame) {
-    return "<adaptor>";
-  }
+  // v8::Smi smi_context = js_frame.FromFrameMarker(context);
+  // if (smi_context.Check() &&
+      // smi_context.GetValue() == llv8_->frame()->kAdaptorFrame) {
+    // return "<adaptor>";
+  // }
 
-  v8::Value marker = llv8_->LoadValue<v8::Value>(
-      js_frame.raw() + llv8_->frame()->kMarkerOffset, err);
-  if (err.Fail()) return std::string();
+  // v8::Value marker = llv8_->LoadValue<v8::Value>(
+      // js_frame.raw() + llv8_->frame()->kMarkerOffset, err);
+      //
+  // v8::Value marker = GetMarker(err);
+  // if (err.Fail()) return std::string();
 
-  v8::Smi smi_marker = js_frame.FromFrameMarker(marker);
-  if (smi_marker.Check()) {
-    int64_t value = smi_marker.GetValue();
-    if (value == llv8_->frame()->kEntryFrame) {
-      return "<entry>";
-    } else if (value == llv8_->frame()->kEntryConstructFrame) {
-      return "<entry_construct>";
-    } else if (value == llv8_->frame()->kExitFrame) {
-      return "<exit>";
-    } else if (value == llv8_->frame()->kInternalFrame) {
-      return "<internal>";
-    } else if (value == llv8_->frame()->kConstructFrame) {
-      return "<constructor>";
-    } else if (value == llv8_->frame()->kStubFrame) {
-      return "<stub>";
-    } else if (value != llv8_->frame()->kJSFrame &&
-               value != llv8_->frame()->kOptimizedFrame) {
-      err = Error::Failure("Unknown frame marker %" PRId64, value);
-      return std::string();
-    }
-  }
+  // v8::Smi smi_marker = js_frame.FromFrameMarker(marker);
+  // if (smi_marker.Check()) {
+    // int64_t value = smi_marker.GetValue();
+    // if (value == llv8_->frame()->kEntryFrame) {
+      // return "<entry>";
+    // } else if (value == llv8_->frame()->kEntryConstructFrame) {
+      // return "<entry_construct>";
+    // } else if (value == llv8_->frame()->kExitFrame) {
+      // return "<exit>";
+    // } else if (value == llv8_->frame()->kInternalFrame) {
+      // return "<internal>";
+    // } else if (value == llv8_->frame()->kConstructFrame) {
+      // return "<constructor>";
+    // } else if (value == llv8_->frame()->kStubFrame) {
+      // return "<stub>";
+    // } else if (value != llv8_->frame()->kJSFrame &&
+               // value != llv8_->frame()->kOptimizedFrame) {
+      // err = Error::Failure("Unknown frame marker %" PRId64, value);
+      // return std::string();
+    // }
+  // }
 
   // We are dealing with function or internal code (probably stub)
-  v8::JSFunction fn = js_frame.GetFunction(err);
-  if (err.Fail()) return std::string();
+  // v8::JSFunction fn = js_frame.GetFunction(err);
+  // if (err.Fail()) return std::string();
 
-  int64_t fn_type = fn.GetType(err);
-  if (err.Fail()) return std::string();
+  // int64_t fn_type = fn.GetType(err);
+  // if (err.Fail()) return std::string();
 
-  if (fn_type == llv8_->types()->kCodeType) return "<internal code>";
-  if (fn_type != llv8_->types()->kJSFunctionType) return "<non-function>";
+  // if (fn_type == llv8_->types()->kCodeType) return "<internal code>";
+  // if (fn_type != llv8_->types()->kJSFunctionType) return "<non-function>";
 
-  std::string args;
-  if (options_.with_args) {
-    args = StringifyArgs(js_frame, fn, err);
-    if (err.Fail()) return std::string();
-  }
+  // std::string args;
+  // if (options_.with_args) {
+    // args = StringifyArgs(js_frame, fn, err);
+    // if (err.Fail()) return std::string();
+  // }
 
-  char tmp[128];
-  snprintf(tmp, sizeof(tmp), " fn=0x%016" PRIx64, fn.raw());
-  return fn.GetDebugLine(args, err) + tmp;
+  // char tmp[128];
+  // snprintf(tmp, sizeof(tmp), " fn=0x%016" PRIx64, fn.raw());
+  // return fn.GetDebugLine(args, err) + tmp;
+  std::string str = ToString(err);
+  return str;
 }
 
 

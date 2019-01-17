@@ -262,6 +262,77 @@ uint32_t JSFrame::GetSourceForDisplay(bool reset_line, uint32_t line_start,
 }
 
 
+v8::Value GetContext(Error& err) {
+  v8::Value ctx = llv8_->LoadValue<v8::Value>(
+      raw() + llv8_->frame()->kContextOffset, err
+  );
+  return ctx;
+}
+
+v8::Value GetMarker(Error& err) {
+  v8::Value marker = llv8_->LoadValue<v8::Value>(
+    raw() + llv8_->frame()->kMarkerOffset, err
+  );
+  return marker;
+}
+
+std::string ToString(err) {
+
+  v8::Value context = GetContext(err);
+  if (err.Fail()) return std::string();
+
+  v8::Smi smi_context = js_frame.FromFrameMarker(context);
+  if (smi_context.Check() &&
+      smi_context.GetValue() == llv8_->frame()->kAdaptorFrame) {
+    return "<adaptor>";
+  }
+
+  v8::Value marker = GetMarker(err);
+  if (err.Fail()) return std::string();
+
+  v8::Smi smi_marker = js_frame.FromFrameMarker(marker);
+  if (smi_marker.Check()) {
+    int64_t value = smi_marker.GetValue();
+    if (value == llv8_->frame()->kEntryFrame) {
+      return "<entry>";
+    } else if (value == llv8_->frame()->kEntryConstructFrame) {
+      return "<entry_construct>";
+    } else if (value == llv8_->frame()->kExitFrame) {
+      return "<exit>";
+    } else if (value == llv8_->frame()->kInternalFrame) {
+      return "<internal>";
+    } else if (value == llv8_->frame()->kConstructFrame) {
+      return "<constructor>";
+    } else if (value == llv8_->frame()->kStubFrame) {
+      return "<stub>";
+    } else if (value != llv8_->frame()->kJSFrame &&
+               value != llv8_->frame()->kOptimizedFrame) {
+      err = Error::Failure("Unknown frame marker %" PRId64, value);
+      return std::string();
+    }
+  }
+
+  v8::JSFunction fn = js_frame.GetFunction(err);
+  if (err.Fail()) return std::string();
+
+  int64_t fn_type = fn.GetType(err);
+  if (err.Fail()) return std::string();
+
+  if (fn_type == llv8_->types()->kCodeType) return "<internal code>";
+  if (fn_type != llv8_->types()->kJSFunctionType) return "<non-function>";
+
+  std::string args;
+  if (options_.with_args) {
+    args = StringifyArgs(js_frame, fn, err);
+    if (err.Fail()) return std::string();
+  }
+
+  char tmp[128];
+  snprintf(tmp, sizeof(tmp), " fn=0x%016" PRIx64, fn.raw());
+  return fn.GetDebugLine(args, err) + tmp;
+}
+
+
 // On 64 bits systems, V8 stores SMIs (small ints) in the top 32 bits of
 // a 64 bits word.  Frame markers used to obey this convention but as of
 // V8 5.8, they are stored as 32 bits SMIs with the top half set to zero.

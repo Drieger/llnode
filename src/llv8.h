@@ -465,6 +465,13 @@ class JSFrame : public Value {
                                uint32_t line_limit, std::string lines[],
                                uint32_t& lines_found, Error& err);
 
+  // More methods
+  v8::Value GetContext(Error& err);
+
+  v8::Value GetMarker(Error& err);
+
+  std::string ToString(err);
+
  private:
   Smi FromFrameMarker(Value value) const;
   friend class llnode::Printer;
